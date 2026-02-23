@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Costco Split 🛒</title>
+<style>
+  :root {
+    --ethan: #4A90D9;
+    --connor: #2ECC71;
+    --david: #E67E22;
+    --bridger: #9B59B6;
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card-border: #2a2d3a;
+    --text: #e8e8ed;
+    --text-dim: #8b8d97;
+    --text-bright: #ffffff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 200px;
+  }
+  .header {
+    background: var(--card);
+    border-bottom: 1px solid var(--card-border);
+    padding: 16px 20px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .header .total { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+  .totals-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--card-border);
+    position: sticky;
+    top: 65px;
+    z-index: 99;
+  }
+  .person-total {
+    text-align: center;
+    padding: 10px 4px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+  }
+  .person-total .name {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .person-total .amount {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .person-total.ethan .name, .person-total.ethan .amount { color: var(--ethan); }
+  .person-total.connor .name, .person-total.connor .amount { color: var(--connor); }
+  .person-total.david .name, .person-total.david .amount { color: var(--david); }
+  .person-total.bridger .name, .person-total.bridger .amount { color: var(--bridger); }
+
+  .items { padding: 8px 12px; }
+  .item {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .item-name {
+    font-size: 15px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .item-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-left: 12px;
+  }
+  .item-checks {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .check-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .check-btn.checked { background: rgba(255,255,255,0.08); }
+  .check-btn.checked.ethan { border-color: var(--ethan); color: var(--ethan); }
+  .check-btn.checked.connor { border-color: var(--connor); color: var(--connor); }
+  .check-btn.checked.david { border-color: var(--david); color: var(--david); }
+  .check-btn.checked.bridger { border-color: var(--bridger); color: var(--bridger); }
+  .check-btn .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-dim);
+    transition: background 0.15s;
+  }
+  .check-btn.checked.ethan .dot { background: var(--ethan); }
+  .check-btn.checked.connor .dot { background: var(--connor); }
+  .check-btn.checked.david .dot { background: var(--david); }
+  .check-btn.checked.bridger .dot { background: var(--bridger); }
+  .check-btn:active { transform: scale(0.95); }
+
+  .item-split {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  .sync-status {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--card);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    z-index: 200;
+  }
+  .sync-status.saving { color: var(--ethan); }
+  .sync-status.error { color: #e74c3c; }
+
+  .add-item-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--card-border);
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 200;
+  }
+  .add-item-bar input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .add-item-bar input:focus { border-color: var(--ethan); }
+  .add-item-bar input::placeholder { color: var(--text-dim); }
+  .add-item-bar .price-input { width: 80px; flex: none; }
+  .add-item-bar button {
+    background: var(--ethan);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .add-item-bar button:active { opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🛒 Costco Split</h1>
+  <div class="total">Total: $413.97 (incl. tax)</div>
+</div>
+
+<div class="totals-bar" id="totals-bar"></div>
+<div class="items" id="items-list"></div>
+
+<div class="add-item-bar">
+  <input type="text" id="new-name" placeholder="Item name">
+  <input type="number" id="new-price" class="price-input" placeholder="$0.00" step="0.01" min="0">
+  <button onclick="addItem()">+</button>
+</div>
+
+<div class="sync-status" id="sync-status">Synced ✓</div>
+
+<script>
+const PEOPLE = ['ethan','connor','david','bridger'];
+const LABELS = {ethan:'Ethan',connor:'Connor',david:'David',bridger:'Bridger'};
+const TAX_MULT = 413.97 / 395.34; // proportional tax distribution
+
+const DEFAULT_ITEMS = [
+  {id:1, name:"Watermelon", price:14.99},
+  {id:2, name:"Snapware 38pc Container Set", price:15.99},
+  {id:3, name:"Cage Free Eggs", price:5.89},
+  {id:4, name:"Cage Free Eggs", price:5.89},
+  {id:5, name:"Samsung 27\" Monitor", price:119.99},
+  {id:6, name:"Beach Towel", price:13.99},
+  {id:7, name:"Beach Towel", price:9.99},
+  {id:8, name:"Sliced Cheddar", price:12.99},
+  {id:9, name:"Korean BBQ Jerky", price:32.99},
+  {id:10, name:"Grass Fed Beef", price:4.79},
+  {id:11, name:"Romaine Lettuce", price:16.89},
+  {id:12, name:"Chobani Yogurt", price:6.99},
+  {id:13, name:"Lollipeppers", price:3.99},
+  {id:14, name:"Mandarins", price:16.49},
+  {id:15, name:"BB Mineral Water", price:11.99},
+  {id:16, name:"Almond Flour Tortillas", price:8.29},
+  {id:17, name:"KS Almond Butter", price:15.08},
+  {id:18, name:"Sliced Turkey", price:9.29},
+  {id:19, name:"Canyon Bakehouse Bread", price:9.99},
+  {id:20, name:"KS Sliced Ham", price:13.99},
+  {id:21, name:"KS Cooked Bacon", price:15.99},
+  {id:22, name:"Tikka Masala", price:4.99},
+  {id:23, name:"Rotisserie Chicken", price:6.89},
+  {id:24, name:"Hamburger Buns", price:5.99},
+  {id:25, name:"Butter Croissants", price:5.10},
+];
+
+let state = { items: [], checks: {} };
+let blobId = null;
+let saving = false;
+let pollTimer = null;
+let lastStateJson = '';
+
+function initDefaultState() {
+  state.items = DEFAULT_ITEMS.map(i => ({...i}));
+  state.checks = {};
+  state.items.forEach(item => {
+    state.checks[item.id] = {};
+    PEOPLE.forEach(p => { state.checks[item.id][p] = true; });
+  });
+  state.nextId = 26;
+}
+
+function getBlobId() {
+  const hash = location.hash.slice(1);
+  if (hash && hash.length > 5) return hash;
+  const params = new URLSearchParams(location.search);
+  return params.get('id');
+}
+
+async function createBlob() {
+  try {
+    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify(state)
+    });
+    const loc = res.headers.get('Location') || res.headers.get('location');
+    if (loc) {
+      blobId = loc.split('/').pop();
+      location.hash = blobId;
+      lastStateJson = JSON.stringify(state);
+      startPolling();
+    }
+  } catch(e) {
+    console.error('Create blob failed:', e);
+    showSync('Using local only', 'error');
+    // fallback to localStorage
+    localStorage.setItem('costco-split', JSON.stringify(state));
+  }
+}
+
+async function loadBlob(id) {
+  try {
+    const res = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`, {
+      headers: {'Accept':'application/json'}
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.items) {
+        state = data;
+        lastStateJson = JSON.stringify(state);
+        render();
+        startPolling();
+        return;
+      }
+    }
+  } catch(e) {
+    console.error('Load blob failed:', e);
+  }
+  // fallback
+  showSync('Load failed, using defaults', 'error');
+  initDefaultState();
+  render();
+}
+
+async function saveBlob() {
+  const json = JSON.stringify(state);
+  if (json === lastStateJson) return;
+  lastStateJson = json;
+
+  if (blobId) {
+    showSync('Saving...', 'saving');
+    try {
+      await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json','Accept':'application/json'},
+        body: json
+      });
+      showSync('Synced ✓');
+    } catch(e) {
+      showSync('Save failed', 'error');
+      localStorage.setItem('costco-split', json);
+    }
+  } else {
+    localStorage.setItem('costco-split', json);
+  }
+}
+
+async function pollUpdates() {
+  if (!blobId || saving) return;
+  try {
+    const res = await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
+      headers: {'Accept':'application/json'}
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const json = JSON.stringify(data);
+      if (json !== lastStateJson && data && data.items) {
+        state = data;
+        lastStateJson = json;
+        render();
+      }
+    }
+  } catch(e) {}
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(pollUpdates, 3000);
+}
+
+function showSync(text, cls) {
+  const el = document.getElementById('sync-status');
+  el.textContent = text;
+  el.className = 'sync-status' + (cls ? ' ' + cls : '');
+}
+
+function toggleCheck(itemId, person) {
+  if (!state.checks[itemId]) {
+    state.checks[itemId] = {};
+    PEOPLE.forEach(p => { state.checks[itemId][p] = true; });
+  }
+  state.checks[itemId][person] = !state.checks[itemId][person];
+  render();
+  saveBlob();
+}
+
+function calcTotals() {
+  const totals = {};
+  PEOPLE.forEach(p => { totals[p] = 0; });
+  state.items.forEach(item => {
+    const checks = state.checks[item.id] || {};
+    const checked = PEOPLE.filter(p => checks[p] !== false);
+    if (checked.length === 0) return;
+    const share = (item.price * TAX_MULT) / checked.length;
+    checked.forEach(p => { totals[p] += share; });
+  });
+  return totals;
+}
+
+function render() {
+  const totals = calcTotals();
+
+  // Totals bar
+  const bar = document.getElementById('totals-bar');
+  bar.innerHTML = PEOPLE.map(p => `
+    <div class="person-total ${p}">
+      <div class="name">${LABELS[p]}</div>
+      <div class="amount">$${totals[p].toFixed(2)}</div>
+    </div>
+  `).join('');
+
+  // Items
+  const list = document.getElementById('items-list');
+  list.innerHTML = state.items.map(item => {
+    const checks = state.checks[item.id] || {};
+    const checked = PEOPLE.filter(p => checks[p] !== false);
+    const perPerson = checked.length > 0 ? (item.price * TAX_MULT) / checked.length : 0;
+    return `
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">${esc(item.name)}</div>
+          <div class="item-price">$${item.price.toFixed(2)}</div>
+        </div>
+        <div class="item-checks">
+          ${PEOPLE.map(p => {
+            const on = checks[p] !== false;
+            return `<div class="check-btn ${p} ${on?'checked':''}" onclick="toggleCheck(${item.id},'${p}')">
+              <span class="dot"></span> ${LABELS[p].charAt(0)}
+            </div>`;
+          }).join('')}
+        </div>
+        ${checked.length > 0 ? `<div class="item-split">$${perPerson.toFixed(2)}/person (${checked.length})</div>` : '<div class="item-split">No one checked</div>'}
+      </div>
+    `;
+  }).join('');
+
+  // Update header total
+  let actualTotal = 0;
+  PEOPLE.forEach(p => { actualTotal += totals[p]; });
+  document.querySelector('.header .total').textContent = `Total: $${actualTotal.toFixed(2)} (incl. tax)`;
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function addItem() {
+  const nameEl = document.getElementById('new-name');
+  const priceEl = document.getElementById('new-price');
+  const name = nameEl.value.trim();
+  const price = parseFloat(priceEl.value);
+  if (!name || isNaN(price) || price <= 0) return;
+
+  const id = state.nextId || (Math.max(...state.items.map(i=>i.id)) + 1);
+  state.nextId = id + 1;
+  state.items.push({id, name, price});
+  state.checks[id] = {};
+  PEOPLE.forEach(p => { state.checks[id][p] = true; });
+
+  nameEl.value = '';
+  priceEl.value = '';
+  render();
+  saveBlob();
+}
+
+// Init
+async function init() {
+  const existingId = getBlobId();
+  if (existingId) {
+    blobId = existingId;
+    await loadBlob(existingId);
+  } else {
+    initDefaultState();
+    render();
+    await createBlob();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
