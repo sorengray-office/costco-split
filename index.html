@@ -66,17 +66,6 @@
   }
   .person-total .owes {
     font-size: 10px;
-    color: var(--text-dim);
-    margin-top: 4px;
-    font-weight: 500;
-  }
-  .person-total .owes-amount {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--connor);
-  }
-  .person-total .paid {
-    font-size: 11px;
     color: var(--connor);
     margin-top: 4px;
     font-weight: 600;
@@ -475,15 +464,11 @@ function render() {
   // Totals bar with "Owes Connor" amounts
   const bar = document.getElementById('totals-bar');
   bar.innerHTML = PEOPLE.map(p => {
-    const owesConnor = p === 'connor' ? 0 : totals[p];
     return `
       <div class="person-total ${p}">
         <div class="name">${LABELS[p]}</div>
         <div class="amount">$${totals[p].toFixed(2)}</div>
-        ${p === 'connor' 
-          ? '<div class="paid">✓ Paid</div>' 
-          : `<div class="owes">Owes Connor<br><span class="owes-amount">$${owesConnor.toFixed(2)}</span></div>`
-        }
+        <div class="owes">${p === 'connor' ? '✓ Paid for all' : 'Owes Connor'}</div>
       </div>
     `;
   }).join('');
