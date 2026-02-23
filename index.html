@@ -76,7 +76,7 @@
   .person-total.bridger .name, .person-total.bridger .amount { color: var(--bridger); }
 
   .items { padding: 8px 12px; }
-  
+
   .receipt-divider {
     margin: 20px 0 16px 0;
     padding: 8px 16px;
@@ -90,7 +90,7 @@
     border-bottom: 1px solid var(--card-border);
     background: rgba(255,255,255,0.02);
   }
-  
+
   .item {
     background: var(--card);
     border: 1px solid var(--card-border);
@@ -239,7 +239,7 @@
 
 <div class="header">
   <h1>🛒 Costco Split</h1>
-  <div class="total">Total: $761.65 (incl. tax)</div>
+  <div class="total">Total: $844.73 (incl. tax)</div>
 </div>
 
 <div class="totals-bar" id="totals-bar"></div>
@@ -252,10 +252,10 @@
 <script>
 const PEOPLE = ['ethan','connor','david','bridger'];
 const LABELS = {ethan:'Ethan',connor:'Connor',david:'David',bridger:'Bridger'};
-const TAX_MULT = 761.65 / (395.34 + 332.03); // Combined receipts tax distribution
+const TAX_MULT = (761.65 + 83.08) / (395.34 + 332.03 + 79.34); // Combined 3 receipts tax distribution
 
 const DEFAULT_ITEMS = [
-  // Receipt 1 — Costco
+  // Receipt 1 - Costco
   {id:1, name:"Watermelon", price:14.99, emoji:"🍉", receipt: 1},
   {id:2, name:"Snapware 38pc Container Set", price:15.99, emoji:"📦", receipt: 1},
   {id:3, name:"Cage Free Eggs", price:5.89, emoji:"🥚", receipt: 1},
@@ -264,25 +264,25 @@ const DEFAULT_ITEMS = [
   {id:6, name:"Beach Towel", price:13.99, emoji:"🏖️", receipt: 1},
   {id:7, name:"Beach Towel", price:9.99, emoji:"🏖️", receipt: 1},
   {id:8, name:"Sliced Cheddar Cheese", price:12.99, emoji:"🧀", receipt: 1},
-  {id:9, name:"Korean BBQ Jerky", price:32.99, emoji:"🥩", receipt: 1},
-  {id:10, name:"Grass Fed Beef", price:4.79, emoji:"🥩", receipt: 1},
-  {id:11, name:"Romaine Lettuce Hearts", price:16.89, emoji:"🥬", receipt: 1},
-  {id:12, name:"Chobani Greek Yogurt", price:6.99, emoji:"🥛", receipt: 1},
-  {id:13, name:"Sweet Lollipeppers", price:3.99, emoji:"🌶️", receipt: 1},
-  {id:14, name:"Fresh Mandarins", price:16.49, emoji:"🍊", receipt: 1},
-  {id:15, name:"BB Mineral Sunscreen", price:11.99, emoji:"🧴", receipt: 1},
-  {id:16, name:"Almond Flour Tortillas", price:8.29, emoji:"🫓", receipt: 1},
-  {id:17, name:"Kirkland Signature Almond Butter", price:15.08, emoji:"🥜", receipt: 1},
-  {id:18, name:"Sliced Oven Roasted Turkey", price:9.29, emoji:"🦃", receipt: 1},
-  {id:19, name:"Canyon Bakehouse Gluten Free Bread", price:9.99, emoji:"🍞", receipt: 1},
-  {id:20, name:"Kirkland Signature Sliced Ham", price:13.99, emoji:"🍖", receipt: 1},
-  {id:21, name:"Kirkland Signature Cooked Bacon", price:15.99, emoji:"🥓", receipt: 1},
-  {id:22, name:"Tikka Masala Sauce", price:4.99, emoji:"🍛", receipt: 1},
-  {id:23, name:"Rotisserie Chicken", price:6.89, emoji:"🍗", receipt: 1},
-  {id:24, name:"Hamburger Buns", price:5.99, emoji:"🍔", receipt: 1},
-  {id:25, name:"Butter Croissants", price:5.10, emoji:"🥐", receipt: 1},
-  
-  // Receipt 2 — Costco Waipio #485
+  {id:9, name:"Korean BBQ Jerky", price:12.99, emoji:"🥩", receipt: 1},
+  {id:10, name:"Grass Fed Beef", price:32.99, emoji:"🥩", receipt: 1},
+  {id:11, name:"Romaine Lettuce Hearts", price:4.79, emoji:"🥬", receipt: 1},
+  {id:12, name:"Chobani Greek Yogurt", price:16.89, emoji:"🥛", receipt: 1},
+  {id:13, name:"Sweet Lollipeppers", price:6.99, emoji:"🌶️", receipt: 1},
+  {id:14, name:"Fresh Mandarins", price:3.99, emoji:"🍊", receipt: 1},
+  {id:15, name:"BB Mineral Sunscreen", price:16.49, emoji:"🧴", receipt: 1},
+  {id:16, name:"Almond Flour Tortillas", price:11.99, emoji:"🫓", receipt: 1},
+  {id:17, name:"Kirkland Signature Almond Butter", price:8.29, emoji:"🥜", receipt: 1},
+  {id:18, name:"Sliced Oven Roasted Turkey", price:15.08, emoji:"🦃", receipt: 1},
+  {id:19, name:"Canyon Bakehouse Gluten Free Bread", price:9.29, emoji:"🍞", receipt: 1},
+  {id:20, name:"Kirkland Signature Sliced Ham", price:9.99, emoji:"🍖", receipt: 1},
+  {id:21, name:"Kirkland Signature Cooked Bacon", price:13.99, emoji:"🥓", receipt: 1},
+  {id:22, name:"Tikka Masala Sauce", price:15.99, emoji:"🍛", receipt: 1},
+  {id:23, name:"Rotisserie Chicken", price:4.99, emoji:"🍗", receipt: 1},
+  {id:24, name:"Hamburger Buns", price:6.89, emoji:"🍔", receipt: 1},
+  {id:25, name:"Butter Croissants", price:5.99, emoji:"🥐", receipt: 1},
+
+  // Receipt 2 - Costco Waipio #485
   {id:26, name:"Jack Link's Beef Sticks (×2)", price:35.98, emoji:"🥩", receipt: 2},
   {id:27, name:"U.S. Divers Snorkel Set", price:39.99, emoji:"🤿", receipt: 2},
   {id:28, name:"Korean BBQ Style Steak", price:19.59, emoji:"🥓", receipt: 2},
@@ -297,6 +297,24 @@ const DEFAULT_ITEMS = [
   {id:37, name:"Chicken Skewers (×2)", price:35.98, emoji:"🍢", receipt: 2},
   {id:38, name:"Thai Jasmine Rice", price:21.99, emoji:"🍚", receipt: 2},
   {id:39, name:"Life & Table Kitchen Island", price:59.99, emoji:"🏠", receipt: 2},
+
+  // Receipt 3 - Target Oahu Windward Mall
+  {id:40, name:"Reusable Bags (×2)", price:1.98, emoji:"🛍️", receipt: 3},
+  {id:41, name:"Sunhearth Bread", price:6.29, emoji:"🍞", receipt: 3},
+  {id:42, name:"GG Cheese", price:8.39, emoji:"🧀", receipt: 3},
+  {id:43, name:"Sunhearth Bread", price:8.99, emoji:"🍞", receipt: 3},
+  {id:44, name:"GG Ground Beef", price:8.49, emoji:"🥩", receipt: 3},
+  {id:45, name:"Barilla Pasta (×2)", price:4.58, emoji:"🍝", receipt: 3},
+  {id:46, name:"Red Bull", price:3.05, emoji:"🥤", receipt: 3},
+  {id:47, name:"Icebreakers Gum", price:4.99, emoji:"🍬", receipt: 3},
+  {id:48, name:"Market Pantry", price:2.19, emoji:"🥫", receipt: 3},
+  {id:49, name:"GG Cooking Spray", price:3.89, emoji:"🫒", receipt: 3},
+  {id:50, name:"Post Cereal", price:4.29, emoji:"🥣", receipt: 3},
+  {id:51, name:"Prego Sauce (×2)", price:5.18, emoji:"🍅", receipt: 3},
+  {id:52, name:"MP Dressing", price:2.59, emoji:"🥗", receipt: 3},
+  {id:53, name:"GG Condiment", price:2.49, emoji:"🧂", receipt: 3},
+  {id:54, name:"Best Foods Mayo", price:4.39, emoji:"🥚", receipt: 3},
+  {id:55, name:"Maruchan Ramen (×4)", price:7.56, emoji:"🍜", receipt: 3},
 ];
 
 let state = { items: [], checks: {} };
@@ -317,7 +335,7 @@ function initDefaultState() {
     state.checks[item.id] = {};
     PEOPLE.forEach(p => { state.checks[item.id][p] = true; });
   });
-  state.nextId = 40;
+  state.nextId = 56;
 }
 
 async function loadState() {
@@ -470,21 +488,23 @@ function render() {
   const list = document.getElementById('items-list');
   let html = '';
   let currentReceipt = null;
-  
+
   state.items.forEach(item => {
     // Add receipt divider if needed
     if (item.receipt !== currentReceipt) {
       currentReceipt = item.receipt;
-      const receiptLabel = item.receipt === 1 
-        ? 'Receipt 1 — Costco' 
-        : 'Receipt 2 — Costco Waipio #485';
+      const receiptLabel = item.receipt === 1
+        ? 'Receipt 1 — Costco'
+        : item.receipt === 2
+        ? 'Receipt 2 — Costco Waipio'
+        : 'Receipt 3 — Target Windward Mall';
       html += `<div class="receipt-divider">${receiptLabel}</div>`;
     }
-    
+
     const checks = state.checks[item.id] || {};
     const checked = PEOPLE.filter(p => checks[p] !== false);
     const perPerson = checked.length > 0 ? (item.price * TAX_MULT) / checked.length : 0;
-    
+
     html += `
       <div class="item">
         <div class="item-top">
@@ -492,7 +512,7 @@ function render() {
             ${getItemImage(item)}
             <span>${esc(item.name)}</span>
           </div>
-          <div class="item-price">$${item.price.toFixed(2)}</div>
+          <div class="item-price">$${(item.price * TAX_MULT).toFixed(2)}</div>
         </div>
         <div class="item-checks">
           ${PEOPLE.map(p => {
@@ -506,7 +526,7 @@ function render() {
       </div>
     `;
   });
-  
+
   list.innerHTML = html;
 
   // Update header total
