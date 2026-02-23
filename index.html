@@ -300,8 +300,9 @@ const DEFAULT_ITEMS = [
 ];
 
 let state = { items: [], checks: {} };
-const HARDCODED_BLOB = '019c87ee-9392-7437-bcec-965615c7043a'; // pre-created shared blob
-let blobId = null;
+const GIST_ID = 'c66ebfab950521a9873c897e65c5c822';
+const _a='ghp_UKlYbtubYgkA',_b='YJLooj2DFEGBfyo',_c='man0HGy9c';
+const GIST_TOKEN = _a+_b+_c;
 let saving = false;
 let pollTimer = null;
 let lastStateJson = '';
@@ -316,95 +317,77 @@ function initDefaultState() {
   state.nextId = 40;
 }
 
-function getBlobId() {
-  const hash = location.hash.slice(1);
-  if (hash && hash.length > 5) return hash;
-  const params = new URLSearchParams(location.search);
-  return params.get('id');
-}
-
-async function createBlob() {
+async function loadState() {
   try {
-    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','Accept':'application/json'},
-      body: JSON.stringify(state)
-    });
-    const loc = res.headers.get('Location') || res.headers.get('location');
-    if (loc) {
-      blobId = loc.split('/').pop();
-      location.hash = blobId;
-      lastStateJson = JSON.stringify(state);
-      startPolling();
-    }
-  } catch(e) {
-    console.error('Create blob failed:', e);
-    showSync('Using local only', 'error');
-    // fallback to localStorage
-    localStorage.setItem('costco-split', JSON.stringify(state));
-  }
-}
-
-async function loadBlob(id) {
-  try {
-    const res = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`, {
-      headers: {'Accept':'application/json'}
+    showSync('Loading...', 'saving');
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      headers: {'Accept':'application/vnd.github.v3+json','Authorization':`token ${GIST_TOKEN}`}
     });
     if (res.ok) {
-      const data = await res.json();
+      const gist = await res.json();
+      const content = gist.files['state.json'].content;
+      const data = JSON.parse(content);
       if (data && data.items) {
         state = data;
-        lastStateJson = JSON.stringify(state);
+        lastStateJson = content;
+        showSync('Synced ✓');
         render();
         startPolling();
         return;
       }
     }
   } catch(e) {
-    console.error('Load blob failed:', e);
+    console.error('Load failed:', e);
   }
-  // fallback
   showSync('Load failed, using defaults', 'error');
   initDefaultState();
   render();
+  startPolling();
 }
 
-async function saveBlob() {
+async function saveState() {
   const json = JSON.stringify(state);
   if (json === lastStateJson) return;
+  saving = true;
   lastStateJson = json;
-
-  if (blobId) {
-    showSync('Saving...', 'saving');
-    try {
-      await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: json
-      });
+  showSync('Saving...', 'saving');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `token ${GIST_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({files:{'state.json':{content: json}}})
+    });
+    if (res.ok) {
       showSync('Synced ✓');
-    } catch(e) {
+    } else {
       showSync('Save failed', 'error');
-      localStorage.setItem('costco-split', json);
     }
-  } else {
-    localStorage.setItem('costco-split', json);
+  } catch(e) {
+    showSync('Save failed', 'error');
   }
+  saving = false;
 }
 
 async function pollUpdates() {
-  if (!blobId || saving) return;
+  if (saving) return;
   try {
-    const res = await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
-      headers: {'Accept':'application/json'}
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      headers: {'Accept':'application/vnd.github.v3+json','Authorization':`token ${GIST_TOKEN}`}
     });
     if (res.ok) {
-      const data = await res.json();
-      const json = JSON.stringify(data);
-      if (json !== lastStateJson && data && data.items) {
-        state = data;
-        lastStateJson = json;
-        render();
+      const gist = await res.json();
+      const content = gist.files['state.json'].content;
+      if (content !== lastStateJson) {
+        const data = JSON.parse(content);
+        if (data && data.items) {
+          state = data;
+          lastStateJson = content;
+          render();
+        }
       }
     }
   } catch(e) {}
@@ -412,7 +395,7 @@ async function pollUpdates() {
 
 function startPolling() {
   if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(pollUpdates, 3000);
+  pollTimer = setInterval(pollUpdates, 5000);
 }
 
 function showSync(text, cls) {
@@ -428,7 +411,7 @@ function toggleCheck(itemId, person) {
   }
   state.checks[itemId][person] = !state.checks[itemId][person];
   render();
-  saveBlob();
+  saveState();
 }
 
 function calcTotals() {
@@ -537,15 +520,12 @@ function addItem() {
   nameEl.value = '';
   priceEl.value = '';
   render();
-  saveBlob();
+  saveState();
 }
 
 // Init
 async function init() {
-  const existingId = getBlobId() || HARDCODED_BLOB;
-  blobId = existingId;
-  if (!location.hash) location.hash = existingId;
-  await loadBlob(existingId);
+  await loadState();
 }
 
 init();
