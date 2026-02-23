@@ -300,6 +300,7 @@ const DEFAULT_ITEMS = [
 ];
 
 let state = { items: [], checks: {} };
+const HARDCODED_BLOB = '019c87ee-9392-7437-bcec-965615c7043a'; // pre-created shared blob
 let blobId = null;
 let saving = false;
 let pollTimer = null;
@@ -541,15 +542,10 @@ function addItem() {
 
 // Init
 async function init() {
-  const existingId = getBlobId();
-  if (existingId) {
-    blobId = existingId;
-    await loadBlob(existingId);
-  } else {
-    initDefaultState();
-    render();
-    await createBlob();
-  }
+  const existingId = getBlobId() || HARDCODED_BLOB;
+  blobId = existingId;
+  if (!location.hash) location.hash = existingId;
+  await loadBlob(existingId);
 }
 
 init();
