@@ -305,6 +305,9 @@ const _a='ghp_UKlYbtubYgkA',_b='YJLooj2DFEGBfyo',_c='man0HGy9c';
 const GIST_TOKEN = _a+_b+_c;
 let saving = false;
 let pollTimer = null;
+let dirty = false;
+let saveTimer = null;
+let lastEditTime = 0;
 let lastStateJson = '';
 
 function initDefaultState() {
@@ -345,10 +348,20 @@ async function loadState() {
   startPolling();
 }
 
-async function saveState() {
+function saveState() {
+  dirty = true;
+  lastEditTime = Date.now();
+  showSync('Pending...', 'saving');
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSave, 1200);
+}
+
+async function flushSave() {
+  if (!dirty) return;
   const json = JSON.stringify(state);
-  if (json === lastStateJson) return;
+  if (json === lastStateJson) { dirty = false; return; }
   saving = true;
+  dirty = false;
   lastStateJson = json;
   showSync('Saving...', 'saving');
   try {
@@ -373,7 +386,7 @@ async function saveState() {
 }
 
 async function pollUpdates() {
-  if (saving) return;
+  if (saving || dirty || (Date.now() - lastEditTime < 3000)) return;
   try {
     const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
       headers: {'Accept':'application/vnd.github.v3+json','Authorization':`token ${GIST_TOKEN}`}
