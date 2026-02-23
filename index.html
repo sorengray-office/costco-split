@@ -64,12 +64,44 @@
     font-size: 18px;
     font-weight: 700;
   }
+  .person-total .owes {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .person-total .owes-amount {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--connor);
+  }
+  .person-total .paid {
+    font-size: 11px;
+    color: var(--connor);
+    margin-top: 4px;
+    font-weight: 600;
+  }
   .person-total.ethan .name, .person-total.ethan .amount { color: var(--ethan); }
   .person-total.connor .name, .person-total.connor .amount { color: var(--connor); }
   .person-total.david .name, .person-total.david .amount { color: var(--david); }
   .person-total.bridger .name, .person-total.bridger .amount { color: var(--bridger); }
 
   .items { padding: 8px 12px; }
+  
+  .receipt-divider {
+    margin: 20px 0 16px 0;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.02);
+  }
+  
   .item {
     background: var(--card);
     border: 1px solid var(--card-border);
@@ -87,6 +119,28 @@
     font-size: 15px;
     font-weight: 600;
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .item-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+  }
+  .item-emoji {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    background: linear-gradient(135deg, rgba(74,144,217,0.2), rgba(155,89,182,0.2));
   }
   .item-price {
     font-size: 15px;
@@ -196,7 +250,7 @@
 
 <div class="header">
   <h1>🛒 Costco Split</h1>
-  <div class="total">Total: $413.97 (incl. tax)</div>
+  <div class="total">Total: $761.65 (incl. tax)</div>
 </div>
 
 <div class="totals-bar" id="totals-bar"></div>
@@ -213,34 +267,51 @@
 <script>
 const PEOPLE = ['ethan','connor','david','bridger'];
 const LABELS = {ethan:'Ethan',connor:'Connor',david:'David',bridger:'Bridger'};
-const TAX_MULT = 413.97 / 395.34; // proportional tax distribution
+const TAX_MULT = 761.65 / (395.34 + 332.03); // Combined receipts tax distribution
 
 const DEFAULT_ITEMS = [
-  {id:1, name:"Watermelon", price:14.99},
-  {id:2, name:"Snapware 38pc Container Set", price:15.99},
-  {id:3, name:"Cage Free Eggs", price:5.89},
-  {id:4, name:"Cage Free Eggs", price:5.89},
-  {id:5, name:"Samsung 27\" Monitor", price:119.99},
-  {id:6, name:"Beach Towel", price:13.99},
-  {id:7, name:"Beach Towel", price:9.99},
-  {id:8, name:"Sliced Cheddar", price:12.99},
-  {id:9, name:"Korean BBQ Jerky", price:32.99},
-  {id:10, name:"Grass Fed Beef", price:4.79},
-  {id:11, name:"Romaine Lettuce", price:16.89},
-  {id:12, name:"Chobani Yogurt", price:6.99},
-  {id:13, name:"Lollipeppers", price:3.99},
-  {id:14, name:"Mandarins", price:16.49},
-  {id:15, name:"BB Mineral Water", price:11.99},
-  {id:16, name:"Almond Flour Tortillas", price:8.29},
-  {id:17, name:"KS Almond Butter", price:15.08},
-  {id:18, name:"Sliced Turkey", price:9.29},
-  {id:19, name:"Canyon Bakehouse Bread", price:9.99},
-  {id:20, name:"KS Sliced Ham", price:13.99},
-  {id:21, name:"KS Cooked Bacon", price:15.99},
-  {id:22, name:"Tikka Masala", price:4.99},
-  {id:23, name:"Rotisserie Chicken", price:6.89},
-  {id:24, name:"Hamburger Buns", price:5.99},
-  {id:25, name:"Butter Croissants", price:5.10},
+  // Receipt 1 — Costco
+  {id:1, name:"Watermelon", price:14.99, emoji:"🍉", receipt: 1},
+  {id:2, name:"Snapware 38pc Container Set", price:15.99, emoji:"📦", receipt: 1},
+  {id:3, name:"Cage Free Eggs", price:5.89, emoji:"🥚", receipt: 1},
+  {id:4, name:"Cage Free Eggs", price:5.89, emoji:"🥚", receipt: 1},
+  {id:5, name:"Samsung 27\" Monitor", price:119.99, emoji:"🖥️", receipt: 1},
+  {id:6, name:"Beach Towel", price:13.99, emoji:"🏖️", receipt: 1},
+  {id:7, name:"Beach Towel", price:9.99, emoji:"🏖️", receipt: 1},
+  {id:8, name:"Sliced Cheddar Cheese", price:12.99, emoji:"🧀", receipt: 1},
+  {id:9, name:"Korean BBQ Jerky", price:32.99, emoji:"🥩", receipt: 1},
+  {id:10, name:"Grass Fed Beef", price:4.79, emoji:"🥩", receipt: 1},
+  {id:11, name:"Romaine Lettuce Hearts", price:16.89, emoji:"🥬", receipt: 1},
+  {id:12, name:"Chobani Greek Yogurt", price:6.99, emoji:"🥛", receipt: 1},
+  {id:13, name:"Sweet Lollipeppers", price:3.99, emoji:"🌶️", receipt: 1},
+  {id:14, name:"Fresh Mandarins", price:16.49, emoji:"🍊", receipt: 1},
+  {id:15, name:"San Pellegrino Mineral Water", price:11.99, emoji:"💧", receipt: 1},
+  {id:16, name:"Almond Flour Tortillas", price:8.29, emoji:"🫓", receipt: 1},
+  {id:17, name:"Kirkland Signature Almond Butter", price:15.08, emoji:"🥜", receipt: 1},
+  {id:18, name:"Sliced Oven Roasted Turkey", price:9.29, emoji:"🦃", receipt: 1},
+  {id:19, name:"Canyon Bakehouse Gluten Free Bread", price:9.99, emoji:"🍞", receipt: 1},
+  {id:20, name:"Kirkland Signature Sliced Ham", price:13.99, emoji:"🍖", receipt: 1},
+  {id:21, name:"Kirkland Signature Cooked Bacon", price:15.99, emoji:"🥓", receipt: 1},
+  {id:22, name:"Tikka Masala Sauce", price:4.99, emoji:"🍛", receipt: 1},
+  {id:23, name:"Rotisserie Chicken", price:6.89, emoji:"🍗", receipt: 1},
+  {id:24, name:"Hamburger Buns", price:5.99, emoji:"🍔", receipt: 1},
+  {id:25, name:"Butter Croissants", price:5.10, emoji:"🥐", receipt: 1},
+  
+  // Receipt 2 — Costco Waipio #485
+  {id:26, name:"Jack Link's Beef Sticks (×2)", price:35.98, itemNum:"1250564", receipt: 2},
+  {id:27, name:"U.S. Divers Snorkel Set", price:39.99, itemNum:"2622091", receipt: 2},
+  {id:28, name:"Korean BBQ Style Steak", price:19.59, itemNum:"1474060", receipt: 2},
+  {id:29, name:"Kirkland Signature Roasted Almonds", price:13.69, itemNum:"1713786", receipt: 2},
+  {id:30, name:"Kirkland Signature Tortilla Chips", price:6.79, itemNum:"833684", receipt: 2},
+  {id:31, name:"Beef & Rib Lasagna", price:15.99, itemNum:"1624490", receipt: 2},
+  {id:32, name:"Jongga Kimchi", price:5.99, itemNum:"1793017", receipt: 2}, // After $2.50 coupon
+  {id:33, name:"Maui Pineapple Salsa", price:9.39, itemNum:"18900", receipt: 2},
+  {id:34, name:"Organic Ground Beef (×2)", price:49.38, itemNum:"598881", receipt: 2},
+  {id:35, name:"Fresh Guacamole", price:9.99, itemNum:"1620336", receipt: 2},
+  {id:36, name:"Grillo's Pickles", price:7.29, itemNum:"1241722", receipt: 2},
+  {id:37, name:"Chicken Skewers (×2)", price:35.98, itemNum:"1415808", receipt: 2},
+  {id:38, name:"Thai Jasmine Rice", price:21.99, itemNum:"841930", receipt: 2},
+  {id:39, name:"Life & Table Kitchen Island", price:59.99, itemNum:"1375005", receipt: 2},
 ];
 
 let state = { items: [], checks: {} };
@@ -256,7 +327,7 @@ function initDefaultState() {
     state.checks[item.id] = {};
     PEOPLE.forEach(p => { state.checks[item.id][p] = true; });
   });
-  state.nextId = 26;
+  state.nextId = 40;
 }
 
 function getBlobId() {
@@ -387,28 +458,62 @@ function calcTotals() {
   return totals;
 }
 
+function getItemImage(item) {
+  if (item.itemNum) {
+    const url = `https://images.costco-static.com/ImageDelivery/imageService?profileId=12026540&imageId=${item.itemNum}&recipeId=728`;
+    const emoji = item.emoji || '🛒';
+    return `<img src="${url}" class="item-thumb" onerror="this.outerHTML='<div class=\\'item-emoji\\'>${emoji}</div>'">`;
+  } else {
+    const emoji = item.emoji || '🛒';
+    return `<div class="item-emoji">${emoji}</div>`;
+  }
+}
+
 function render() {
   const totals = calcTotals();
 
-  // Totals bar
+  // Totals bar with "Owes Connor" amounts
   const bar = document.getElementById('totals-bar');
-  bar.innerHTML = PEOPLE.map(p => `
-    <div class="person-total ${p}">
-      <div class="name">${LABELS[p]}</div>
-      <div class="amount">$${totals[p].toFixed(2)}</div>
-    </div>
-  `).join('');
+  bar.innerHTML = PEOPLE.map(p => {
+    const owesConnor = p === 'connor' ? 0 : totals[p];
+    return `
+      <div class="person-total ${p}">
+        <div class="name">${LABELS[p]}</div>
+        <div class="amount">$${totals[p].toFixed(2)}</div>
+        ${p === 'connor' 
+          ? '<div class="paid">✓ Paid</div>' 
+          : `<div class="owes">Owes Connor<br><span class="owes-amount">$${owesConnor.toFixed(2)}</span></div>`
+        }
+      </div>
+    `;
+  }).join('');
 
-  // Items
+  // Items with receipt dividers
   const list = document.getElementById('items-list');
-  list.innerHTML = state.items.map(item => {
+  let html = '';
+  let currentReceipt = null;
+  
+  state.items.forEach(item => {
+    // Add receipt divider if needed
+    if (item.receipt !== currentReceipt) {
+      currentReceipt = item.receipt;
+      const receiptLabel = item.receipt === 1 
+        ? 'Receipt 1 — Costco' 
+        : 'Receipt 2 — Costco Waipio #485';
+      html += `<div class="receipt-divider">${receiptLabel}</div>`;
+    }
+    
     const checks = state.checks[item.id] || {};
     const checked = PEOPLE.filter(p => checks[p] !== false);
     const perPerson = checked.length > 0 ? (item.price * TAX_MULT) / checked.length : 0;
-    return `
+    
+    html += `
       <div class="item">
         <div class="item-top">
-          <div class="item-name">${esc(item.name)}</div>
+          <div class="item-name">
+            ${getItemImage(item)}
+            <span>${esc(item.name)}</span>
+          </div>
           <div class="item-price">$${item.price.toFixed(2)}</div>
         </div>
         <div class="item-checks">
@@ -422,7 +527,9 @@ function render() {
         ${checked.length > 0 ? `<div class="item-split">$${perPerson.toFixed(2)}/person (${checked.length})</div>` : '<div class="item-split">No one checked</div>'}
       </div>
     `;
-  }).join('');
+  });
+  
+  list.innerHTML = html;
 
   // Update header total
   let actualTotal = 0;
@@ -441,7 +548,7 @@ function addItem() {
 
   const id = state.nextId || (Math.max(...state.items.map(i=>i.id)) + 1);
   state.nextId = id + 1;
-  state.items.push({id, name, price});
+  state.items.push({id, name, price, emoji: '🛒', receipt: 2});
   state.checks[id] = {};
   PEOPLE.forEach(p => { state.checks[id][p] = true; });
 
